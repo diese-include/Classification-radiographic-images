@@ -1,13 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jan 12 19:17:59 2022
 
-@author: dii
-"""
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Sun Jan  9 00:48:05 2022
 
@@ -74,7 +65,7 @@ plt.title('Pneumonie')
 plt.imshow(Img_2, cmap = 'gray')
 
 
-
+#lire l'ensemble de donnée avec  ImageDataGenerator on crée l'objet puis on l'instancie 
 img_datagen = ImageDataGenerator(rescale = 1./255,
                                    shear_range = 0.2,
                                    zoom_range = 0.2,
@@ -105,13 +96,16 @@ test_set = img_datagen.flow_from_directory('./chest_xray/test',
 
 warnings.filterwarnings('ignore')
 
+#nombre de classe
 nb_classe=2
 
+
+#modèle AlexNet
 model=keras.models.Sequential([
     keras.layers.Conv2D(filters=128, kernel_size=(11,11), strides=(4,4), activation='relu', 
-                        input_shape=(256,256,1)),
+                        input_shape=(256,256,1)), #fichier d'entrée taille 256x256
     keras.layers.BatchNormalization(),
-    keras.layers.MaxPool2D(pool_size=(2,2)),
+    keras.layers.MaxPool2D(pool_size=(2,2)),             #pas par defaut strides=(1,1)
     keras.layers.Conv2D(filters=256, kernel_size=(5,5), strides=(1,1), activation='relu', padding="same"),
     keras.layers.BatchNormalization(),
     keras.layers.MaxPool2D(pool_size=(3,3)),
@@ -131,6 +125,7 @@ model=keras.models.Sequential([
 ])
 
 
+#compilation du modèle
 model.compile(
     loss='sparse_categorical_crossentropy',
     optimizer=tf.optimizers.SGD(learning_rate=0.001),
@@ -142,16 +137,9 @@ model.summary()
 ##################################################################
 
 # entrainement model
-"""
-history=model.fit(
-    training_set,
-    validation_data=validation_generator,
-    epochs=1,
-)
-"""
 
 history = model.fit(training_set,
-                      epochs = 1 ,
+                      epochs = 30 ,
                       validation_data = validation_generator,
                       )
 
@@ -161,27 +149,34 @@ history = model.fit(training_set,
 test_loss, test_acc = model.evaluate(test_set,verbose=2)
 print('\nTest accuracy:', test_acc)
 
-print(test_loss)
+#taux de perte
+print('Perte',test_loss)
 ################################################################################
 
 
 #######################################################################
-#Faire des prédictions
-#predictions = model.predict(test_set)
-#predictions = (predictions>0.5).astype(np.int)
+#Faire des prédictions sur l'ensemble des données tests:(on obtient un array
+#contenant des array contenant 2 elts chacun pour chaque images,ces valeurs sont des proba. 2 elts parcequ'il y a juste 2 classes
+#l'image appartient à la classe dont la proba est élevé)
+#ex:si la prédiction de l'image 5 renvoie ceci [0.6,0.7] on dira
+#que l'image appartient à la classe pneumonie [NORMAL,PNEUMONIA]
 
 predictions =model.predict(test_set)
+#print(predictions)
 
-#Ici, le modèle a prédit l'étiquette pour chaque image dans l'ensemble de test.
 # Jetons un coup d'œil à la première prédiction :
-predictions[0]
-print(predictions[0])
+predictions[1]
+print('Premiere prediction:',predictions[1])
+#pour choisir la valeur maximale du tableau
 
-#print('classe 1 normal',np.argmax(predictions[0]))
+#attention à la manière dont python compte 0,1,2,... et non 1,2,3,....
+print('Classe:',np.argmax(predictions[1]))
+
+#classe 0:NORMAL
+#classe 1:PNEUMONIA
 
 ############################################################################
-#class_names = ['Normal', 'Pneumonia']
-#print(class_names[0])
+
 
 ###############################################
 
